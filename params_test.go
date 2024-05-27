@@ -31,3 +31,24 @@ func TestParams(t *testing.T) {
 	assert.Equal(t, stringResult, string(body))
 
 }
+
+func TestParamsCatchAll(t *testing.T) {
+	stringResult := "/src/images/image.jpg"
+	router := httprouter.New()
+	router.GET("/static/*imgpath", func(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+		imgpath := params.ByName("imgpath")
+		fmt.Fprint(writer, imgpath)
+	})
+
+	// first / after static is included as catch all params
+	request := httptest.NewRequest(http.MethodGet, "http://localhost:8080/static/src/images/image.jpg", nil)
+	recorder := httptest.NewRecorder()
+
+	router.ServeHTTP(recorder, request)
+
+	body, err := io.ReadAll(recorder.Result().Body)
+	if err != nil {
+		panic(err)
+	}
+	assert.Equal(t, stringResult, string(body))
+}
